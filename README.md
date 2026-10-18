@@ -15,7 +15,7 @@ npm run build
 
 上述命令会自动完成：
 
-1. 将 `main.typ` 转换并按一级章节切分为 `site-src/*.md`；
+1. 将 `main.typ` 转换并按一级章节切分为 `src/*.md`；
 2. 将 VitePress 站点构建至 `dist/`。
 
 预览构建结果：
@@ -30,7 +30,7 @@ npm run preview
 npm run dev
 ```
 
-`site-src/`、`dist/` 与 `node_modules/` 都是生成目录，不提交到仓库。
+`src/`、`dist/` 与 `node_modules/` 都是生成目录，不提交到仓库。
 
 ## GitHub Pages
 

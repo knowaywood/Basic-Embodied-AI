@@ -1,6 +1,6 @@
 node_modules/
-site-src/
 dist/
+site-src/
 .vitepress/cache/
 .vitepress/dist/
 

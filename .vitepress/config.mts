@@ -26,10 +26,10 @@ export default defineConfig({
     siteTitle: 'Basic Embodied AI',
     nav: [],
     sidebar: [
-      { text: '机器人学基础', link: '/' },
-      { text: '机器人学习', link: '/learning.html' },
-      { text: '系统与部署', link: '/systems.html' },
-      { text: '简单问题', link: '/questions.html' }
+      { text: '机器人学基础', link: '/index' },
+      { text: '机器人学习', link: '/learning' },
+      { text: '系统与部署', link: '/systems' },
+      { text: '简单问题', link: '/questions' }
     ],
     sidebarDepth: 2,
     docFooter: { prev: '上一篇', next: '下一篇' },
