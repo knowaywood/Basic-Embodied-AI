@@ -1,0 +1,7 @@
+node_modules/
+site-src/
+dist/
+.vitepress/cache/
+.vitepress/dist/
+
+*.pdf
