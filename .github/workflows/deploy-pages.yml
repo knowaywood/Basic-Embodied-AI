@@ -3,15 +3,6 @@ name: Deploy Site to GitHub Pages
 on:
   push:
     branches: [master]
-    paths:
-      - 'main.typ'
-      - 'src/**'
-      - 'images/**'
-      - 'scripts/**'
-      - '.vitepress/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -47,7 +38,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist

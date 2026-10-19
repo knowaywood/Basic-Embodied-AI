@@ -1,0 +1,52 @@
+name: Build PDF
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v5
+        with:
+          cache-dependency-path: main.typ
+
+      - name: Install fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontconfig unzip zstd
+          mkdir -p "$RUNNER_TEMP/fonts"
+
+          curl -fsSL \
+            https://github.com/alerque/libertinus/releases/download/v7.051/Libertinus-7.051.tar.zst \
+            -o "$RUNNER_TEMP/libertinus.tar.zst"
+          mkdir -p "$RUNNER_TEMP/libertinus"
+          tar --zstd -xf "$RUNNER_TEMP/libertinus.tar.zst" -C "$RUNNER_TEMP/libertinus"
+          find "$RUNNER_TEMP/libertinus" -type f -name '*.otf' \
+            -exec cp {} "$RUNNER_TEMP/fonts/" \;
+
+          curl -fsSL \
+            https://github.com/adobe-fonts/source-han-serif/releases/download/2.003R/09_SourceHanSerifSC.zip \
+            -o "$RUNNER_TEMP/source-han-serif-sc.zip"
+          unzip -j -o "$RUNNER_TEMP/source-han-serif-sc.zip" '*.otf' -d "$RUNNER_TEMP/fonts"
+          fc-cache -f "$RUNNER_TEMP/fonts"
+
+      - name: Build PDF
+        run: typst compile --font-path "$RUNNER_TEMP/fonts" main.typ Basic-Embodied-AI.pdf
+
+      - name: Create or update release and upload PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1
+          target_commitish: master
+          files: Basic-Embodied-AI.pdf
+          overwrite_files: true

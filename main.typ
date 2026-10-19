@@ -1,4 +1,5 @@
 #import "@preview/bookly:5.2.0": *
+#import "_symbols.typ": *
 
 #show: bookly.with(
   title: "Basic Embodied AI",
@@ -21,7 +22,6 @@
   ),
 )
 
-#set text(font: ("Libertinus Serif", "Source Han Serif SC"), lang: "zh", region: "cn")
 #show raw.where(block: false): it => box(
   fill: luma(245),
   inset: (x: 3.5pt, y: 3pt),
@@ -31,7 +31,9 @@
 
 #tableofcontents
 
-#include "src/index.typ"
-#include "src/learning.typ"
-#include "src/systems.typ"
-#include "src/questions.typ"
+#theorems-setup[
+  #include "src/index.typ"
+  #include "src/learning.typ"
+  #include "src/systems.typ"
+  #include "src/questions.typ"
+]
