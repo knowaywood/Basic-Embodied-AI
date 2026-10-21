@@ -15,8 +15,10 @@ npm run build
 
 上述命令会自动完成：
 
-1. 将 `main.typ` 转换并按一级章节切分为 `src/*.md`；
+1. 将 `main.typ` 与 `src/*.typ` 转换为 `site-src/*.md`，并按一级章节切分；
 2. 将 VitePress 站点构建至 `dist/`。
+
+`_symbols.typ` 中的定理、证明和算法宏由 `scripts/pandoc-symbols.typ` 提供网站专用适配：保留正文和标题，省略仅适用于 PDF 的布局。图片路径会按本地预览或 GitHub Pages 项目路径生成。
 
 预览构建结果：
 
@@ -29,8 +31,6 @@ npm run preview
 ```bash
 npm run dev
 ```
-
-`src/`、`dist/` 与 `node_modules/` 都是生成目录，不提交到仓库。
 
 ## GitHub Pages
 

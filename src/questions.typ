@@ -1,26 +1,26 @@
 = 简单问题
 
-下面以“概念—关键公式—工程结论”的顺序回答常见的人形机器人与具身智能问题。记号中，$s$ 为状态、$a$ 为动作、$pi_theta$ 为策略、$A_t$ 为优势函数，$T$ 为齐次变换矩阵。
+下面以“概念—关键公式—工程结论”的顺序回答常见的人形机器人与具身智能问题。记号中， $s$ 为状态、 $a$ 为动作、 $pi_theta$ 为策略、 $A_t$ 为优势函数， $T$ 为齐次变换矩阵。
 
 == 机器人学、标定与表示
 
 === 正逆运动学与机械臂奇异性
 
-正运动学（FK）从关节变量 $q$ 求末端位姿：$T_0^E = product_i T_(i-1)^i (q_i)$。逆运动学（IK）反过来，给定目标位姿 $T_0^E$ 求 $q$；它可能无解、多解，且受关节限位与碰撞约束。
+正运动学（FK）从关节变量 $q$ 求末端位姿： $T_0^E = product_i T_(i-1)^i (q_i)$。逆运动学（IK）反过来，给定目标位姿 $T_0^E$ 求 $q$；它可能无解、多解，且受关节限位与碰撞约束。
 
-局部速度关系是 $dot(x) = J(q) dot(q)$。当雅可比降秩时，机器人处于奇异位形：某些笛卡尔方向不可瞬时运动，或为得到很小的末端速度需要极大的关节速度。典型例子是六轴机械臂腕部三轴共线造成 wrist singularity。应对方法包括避开奇异位形、阻尼最小二乘 $J^T (J J^T + lambda^2 I)^(-1)$、冗余自由度的零空间优化，以及在轨迹规划中限制条件数和关节速度。
+局部速度关系是 $dot(x) = J(q) dot(q)$。当雅可比降秩时，机器人处于奇异位形：某些笛卡尔方向不可瞬时运动，或为得到很小的末端速度需要极大的关节速度。典型例子是六轴机械臂腕部三轴共线造成 wrist singularity。应对方法包括避开奇异位形、阻尼最小二乘 $J^T (J J^T + lambda^2 I)^(-1)$ 、冗余自由度的零空间优化，以及在轨迹规划中限制条件数和关节速度。
 
 === 欧拉角的顺序与万向节死锁
 
-欧拉角有顺序：$R = R_z (psi) R_y (theta) R_x (phi)$（常称 ZYX）与其他顺序表示的旋转不同；还需区分内禀旋转和外禀旋转。不能只说“roll-pitch-yaw”而不说明约定。
+欧拉角有顺序： $R = R_z (psi) R_y (theta) R_x (phi)$ （常称 ZYX）与其他顺序表示的旋转不同；还需区分内禀旋转和外禀旋转。不能只说“roll-pitch-yaw”而不说明约定。
 
-当中间角使两根旋转轴对齐时，三个自由度退化为两个，即万向节死锁。对 ZYX 而言，$theta = ± pi/2$ 是奇异处。结果是角度不唯一、微小姿态变化可引起角度剧烈跳变。内部计算宜用旋转矩阵或单位四元数；欧拉角适合人读、设定小范围姿态，不适合全局插值与优化。
+当中间角使两根旋转轴对齐时，三个自由度退化为两个，即万向节死锁。对 ZYX 而言， $theta = ± pi/2$ 是奇异处。结果是角度不唯一、微小姿态变化可引起角度剧烈跳变。内部计算宜用旋转矩阵或单位四元数；欧拉角适合人读、设定小范围姿态，不适合全局插值与优化。
 
 === 齐次变换：左乘与右乘
 
-齐次变换 $T_A^B$ 表示“把 B 坐标表达的点转换为 A 坐标”：$p_A=T_A^B p_B$。因此左乘一个变换是在改变表达坐标系（或施加世界/空间坐标下的操作）：$p_A' = T_A^(A') p_A$；右乘则是在对象自身/局部坐标下追加操作：$T_A^C=T_A^B T_B^C$。
+齐次变换 $T_A^B$ 表示“把 B 坐标表达的点转换为 A 坐标”： $p_A=T_A^B p_B$。因此左乘一个变换是在改变表达坐标系（或施加世界/空间坐标下的操作）： $p_A' = T_A^(A') p_A$；右乘则是在对象自身/局部坐标下追加操作： $T_A^C=T_A^B T_B^C$。
 
-矩阵乘法不可交换。最安全的判断法不是背“左世界、右自身”，而是看上下标能否相消：$T_A^B T_B^C = T_A^C$。列向量约定与行向量约定会改变书写方向，必须全工程一致。
+矩阵乘法不可交换。最安全的判断法不是背“左世界、右自身”，而是看上下标能否相消： $T_A^B T_B^C = T_A^C$。列向量约定与行向量约定会改变书写方向，必须全工程一致。
 
 === 雅可比矩阵：维度与作用
 
@@ -30,7 +30,7 @@
 
 === 手眼标定：目标与常见方法
 
-手眼标定要求相机与机械臂末端（eye-in-hand）或基座（eye-to-hand）之间的固定外参。经典 eye-in-hand 问题写成 $A_i X = X B_i$：$A_i$ 是两次机械臂位姿的相对运动，$B_i$ 是相机观测标定板的相对运动，$X$ 是待求的相机--末端变换。
+手眼标定要求相机与机械臂末端（eye-in-hand）或基座（eye-to-hand）之间的固定外参。经典 eye-in-hand 问题写成 $A_i X = X B_i$： $A_i$ 是两次机械臂位姿的相对运动， $B_i$ 是相机观测标定板的相对运动， $X$ 是待求的相机--末端变换。
 
 方法包括：分离旋转/平移的 Tsai--Lenz，基于对偶四元数的方法，非线性最小二乘的全局优化，以及把相机、机器人、标定板一起做 bundle adjustment。采集时应有足够多、且绕不同轴的大幅旋转；只做平移或姿态变化太单一会病态。最终要用独立姿态验证重投影误差和抓取/指向误差，不能只看训练残差。
 
@@ -46,9 +46,9 @@ TCP（Tool Center Point）是末端工具上定义的控制点与坐标系，例
 
 PPO（Proximal Policy Optimization）是 *on-policy* actor--critic 方法：用价值网络估计 $A_t$，再让新策略在旧策略采集的轨迹上做多轮小步更新。其核心是限制策略每次更新不能离旧策略太远：
 
-$ r_t (theta) = frac(pi_theta (a_t | s_t), pi_(theta_("old")) (a_t | s_t)) $
+$ r_t (theta) = frac(pi_theta (a_t | s_t), pi_(theta_("old")) (a_t | s_t)) #raw("<eq:ppo-ratio>", lang: "typc") $
 
-$ L^("CLIP") (theta) = hat(E)_t [ min(r_t (theta) A_t, "clip"(r_t (theta), 1-epsilon, 1+epsilon) A_t) ] $
+$ L^("CLIP") (theta) = hat(E)_t [ min(r_t (theta) A_t, "clip"(r_t (theta), 1-epsilon, 1+epsilon) A_t) ] #raw("<eq:ppo-clip>", lang: "typc") $
 
 通常还加价值损失与熵奖励。它的优点是实现简单、数值稳定、易于大规模并行仿真；缺点是只能使用当前策略附近的数据，样本效率不如离策略算法。
 
@@ -64,11 +64,11 @@ $ L^("CLIP") (theta) = hat(E)_t [ min(r_t (theta) A_t, "clip"(r_t (theta), 1-eps
 
 离散分布下，
 
-$ D_("KL")(pi_("old") || pi_theta) = sum_a pi_("old") (a|s) log frac(pi_("old") (a|s), pi_theta (a|s)) $
+$ D_("KL")(pi_("old") || pi_theta) = sum_a pi_("old") (a|s) log frac(pi_("old") (a|s), pi_theta (a|s)) #raw("<eq:kl-divergence>", lang: "typc") $
 
 连续高斯策略可直接由两组均值、方差计算；工程中也常从采样动作估计近似 KL。PPO-Clip 本身不要求 KL 进入损失，它常被用作监控量：KL 过大时提前停止本轮 epoch。
 
-也可以采用自适应 KL penalty：优化 $L^("PG") - beta D_("KL")$，并在 KL 高于目标时增大 $beta$、低于目标时减小 $beta$。结论：clip 是软近端近似，KL 是更直接的“策略漂移仪表”；稳定训练常同时记录 KL、clip fraction、熵和价值误差。
+也可以采用自适应 KL penalty：优化 $L^("PG") - beta D_("KL")$，并在 KL 高于目标时增大 $beta$ 、低于目标时减小 $beta$。结论：clip 是软近端近似，KL 是更直接的“策略漂移仪表”；稳定训练常同时记录 KL、clip fraction、熵和价值误差。
 
 === TD3 与 PPO 的核心差别
 
@@ -102,19 +102,19 @@ TD3 是 *off-policy* 的确定性 actor--critic：经验回放反复复用旧数
 
 === Self-Attention 与 Cross-Attention
 
-Self-attention 的 $Q,K,V$ 都来自同一序列，用来建模序列内部 token 的依赖；Cross-attention 中 $Q$ 来自当前序列（如 decoder），$K,V$ 来自条件序列（如文本、图像或观测），用来读取外部条件。前者回答“同一段信息内谁和谁相关”，后者回答“当前查询应从条件信息中取什么”。
+Self-attention 的 $Q,K,V$ 都来自同一序列，用来建模序列内部 token 的依赖；Cross-attention 中 $Q$ 来自当前序列（如 decoder）， $K,V$ 来自条件序列（如文本、图像或观测），用来读取外部条件。前者回答“同一段信息内谁和谁相关”，后者回答“当前查询应从条件信息中取什么”。
 
 === Transformer 的 QKV 机制
 
-对输入 token 矩阵 $X$，线性投影得到 $Q=X W_Q$、$K=X W_K$、$V=X W_V$，注意力为
+对输入 token 矩阵 $X$，线性投影得到 $Q=X W_Q$ 、 $K=X W_K$ 、 $V=X W_V$，注意力为
 
-$ "Attention"(Q,K,V) = "softmax"(frac(Q K^T, sqrt(d_k))) V $
+$ "Attention"(Q,K,V) = "softmax"(frac(Q K^T, sqrt(d_k))) V #raw("<eq:attention>", lang: "typc") $
 
 $Q K^T$ 是查询与键的相似度，除以 $sqrt(d_k)$ 防止维度大时 softmax 饱和，softmax 后的权重对 $V$ 做加权汇聚。多头注意力在多个子空间并行执行，因而能学习不同类型的关系。注意：Q/K/V 是可学习投影后的角色，不等同于三个固定的数据字段。
 
 === DDPM、DiT 与 Flow Matching：训练差异
 
-DDPM 是扩散生成的概率建模框架：对数据逐步加高斯噪声，训练网络在随机时间 $t$ 预测噪声 $epsilon$、数据 $x_0$ 或速度参数化 $v$，典型损失为 $E||epsilon-(epsilon_theta) (x_t, t, c)||^2$。采样需沿反向去噪轨迹走多步。
+DDPM 是扩散生成的概率建模框架：对数据逐步加高斯噪声，训练网络在随机时间 $t$ 预测噪声 $epsilon$ 、数据 $x_0$ 或速度参数化 $v$，典型损失为 $E||epsilon-(epsilon_theta) (x_t, t, c)||^2$。采样需沿反向去噪轨迹走多步。
 
 DiT（Diffusion Transformer）不是另一种扩散目标，而是用 Transformer 替代 U-Net 作为扩散模型的去噪器，通常把图像 latent 切成 token，并以时间、类别或文本条件调制网络。
 

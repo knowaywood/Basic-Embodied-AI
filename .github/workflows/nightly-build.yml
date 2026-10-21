@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Typst
-        uses: typst-community/setup-typst@v5
+        uses: typst-community/setup-typst@v5.3.0b2
         with:
           cache-dependency-path: main.typ
 
@@ -33,6 +33,10 @@ jobs:
           tar --zstd -xf "$RUNNER_TEMP/libertinus.tar.zst" -C "$RUNNER_TEMP/libertinus"
           find "$RUNNER_TEMP/libertinus" -type f -name '*.otf' \
             -exec cp {} "$RUNNER_TEMP/fonts/" \;
+
+          curl -fsSL \
+            https://ctan.csail.mit.edu/fonts/fandol/FandolKai-Regular.otf \
+            -o "$RUNNER_TEMP/fonts/FandolKai-Regular.otf"
 
           curl -fsSL \
             https://github.com/adobe-fonts/source-han-serif/releases/download/2.003R/09_SourceHanSerifSC.zip \

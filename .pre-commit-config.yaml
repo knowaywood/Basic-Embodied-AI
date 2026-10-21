@@ -1,0 +1,17 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: format-typst
+        name: Format Typst Math and Commas
+        entry: uv run scripts/format_typst.py
+        language: system
+        files: \.typ$
+        pass_filenames: true
+        stages: [pre-commit]
+    -   id: lint-typst
+        name: Lint Typst with tinymist
+        entry: uv run scripts/lint_typst.py
+        language: system
+        files: \.typ$
+        pass_filenames: true
+        stages: [pre-commit]

@@ -1,4 +1,5 @@
 #import "@preview/bookly:5.2.0": *
+#import "@preview/equate:0.3.3": equate
 #import "_symbols.typ": *
 
 #show: bookly.with(
@@ -10,6 +11,7 @@
   fonts: (
     body: ("Libertinus Serif", "Source Han Serif SC"),
     math: "Libertinus Math",
+    size: 10pt,
   ),
   colors: (
     primary: rgb("#2563eb"),
@@ -22,16 +24,12 @@
   ),
 )
 
-#show raw.where(block: false): it => box(
-  fill: luma(245),
-  inset: (x: 3.5pt, y: 3pt),
-  radius: 2pt,
-)[#it]
 #set heading(numbering: "1.1")
 
 #tableofcontents
 
 #theorems-setup[
+  #show: equate.with(breakable: true, sub-numbering: true, number-mode: "label")
   #include "src/index.typ"
   #include "src/learning.typ"
   #include "src/systems.typ"
