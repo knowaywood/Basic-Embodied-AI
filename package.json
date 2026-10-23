@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "bash scripts/build-md.sh && vitepress build",
-    "dev": "bash scripts/build-md.sh && vitepress dev",
+    "build": "python3 scripts/build_site.py && vitepress build",
+    "dev": "python3 scripts/build_site.py && vitepress dev",
     "preview": "vitepress preview"
   },
   "devDependencies": {

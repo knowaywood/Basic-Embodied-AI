@@ -26,3 +26,5 @@
 ]
 #let algo(body, title: none) = algo-figure(body, title: title)
 #let theorems-setup(body) = body
+#let hx = $hat(x)$
+#let hy = $hat(y)$

@@ -5,7 +5,8 @@
   numbering: if numbered { "1" } else { none },
   caption: title,
 )
-
+#let hx = $hat(x)$
+#let hy = $hat(y)$
 #let thm(body, title: none) = thm-figure("Theorem", body, title: title)
 #let lemma(body, title: none) = thm-figure("Lemma", body, title: title)
 #let proposition(body, title: none) = thm-figure("Proposition", body, title: title)
@@ -43,6 +44,9 @@
 #let algo(body, title: none) = algo-figure(body, title: title)
 
 #let theorems-setup(body) = {
+  set math.mat(delim: "[")
+  set list(marker: text(font: "Libertinus Serif")[•])
+
   show raw.where(block: false): it => box(
     fill: luma(245),
     inset: (x: 3.5pt, y: 3pt),

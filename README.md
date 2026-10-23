@@ -15,10 +15,10 @@ npm run build
 
 上述命令会自动完成：
 
-1. 将 `main.typ` 与 `src/*.typ` 转换为 `site-src/*.md`，并按一级章节切分；
+1. 按 `main.typ` 中的章节顺序，将 `src/*.typ` 转换为 `site-src/*.md`；
 2. 将 VitePress 站点构建至 `dist/`。
 
-`_symbols.typ` 中的定理、证明和算法宏由 `scripts/pandoc-symbols.typ` 提供网站专用适配：保留正文和标题，省略仅适用于 PDF 的布局。图片路径会按本地预览或 GitHub Pages 项目路径生成。
+`_symbols.typ` 中的定理、证明和算法宏由 `scripts/pandoc-symbols.typ` 提供网站专用适配：保留正文和标题，省略仅适用于 PDF 的布局。`scripts/build_site.py` 生成页面，`scripts/pandoc-site.lua` 处理公式、引用和图片；VitePress 根据站点 `base` 自动处理部署路径。
 
 预览构建结果：
 
@@ -37,3 +37,7 @@ npm run dev
 推送到 `master` 后，GitHub Actions 会执行 `npm run build`，并将 `dist/` 强制发布到 `gh-pages` 分支。
 
 首次部署后，在仓库 **Settings → Pages** 中选择 **Deploy from a branch**，分支选 `gh-pages`，目录选 `/(root)`。
+
+## TODO
+
+- [ ] typst引用时需要使用 图...

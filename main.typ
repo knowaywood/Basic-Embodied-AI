@@ -11,7 +11,7 @@
   fonts: (
     body: ("Libertinus Serif", "Source Han Serif SC"),
     math: "Libertinus Math",
-    size: 10pt,
+    size: 11pt,
   ),
   colors: (
     primary: rgb("#2563eb"),
@@ -25,6 +25,7 @@
 )
 
 #set heading(numbering: "1.1")
+#show figure.caption: set text(size: 9pt)
 
 #tableofcontents
 

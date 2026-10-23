@@ -1,6 +1,13 @@
 repos:
 -   repo: local
     hooks:
+    -   id: replace-chinese-punctuation
+        name: Replace Chinese punctuation
+        entry: uv run scripts/replace_chinese_punctuation.py
+        language: system
+        files: \.typ$
+        pass_filenames: true
+        stages: [pre-commit]
     -   id: format-typst
         name: Format Typst Math and Commas
         entry: uv run scripts/format_typst.py
