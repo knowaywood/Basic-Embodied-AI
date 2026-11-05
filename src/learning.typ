@@ -1,3 +1,5 @@
+#import "../_symbols.typ": *
+
 = 机器人学习
 
 == 经典机器人
@@ -27,15 +29,16 @@ $
   tau = (s_0, a_0,r_0, s_1, a_1,r_1, ..., s_(T-1), a_(T-1),r_(T-1), s_T)
 $
 
-若环境满足#link("https://en.wikipedia.org/wiki/Markov_property")[马尔可夫性质], 即下一状态只取决于当前状态和动作, 并且策略只根据当前状态选择策略(policy), 则有:
+若环境满足#link("https://en.wikipedia.org/wiki/Markov_property")[马尔可夫性质], 即下一状态只取决于当前状态和动作, 并且 *策略*#footnote[策略 (policy, $pi$)  是智能体的决策规则: 它规定智能体在状态 $s$ 下如何选择动作 $a$. 对于随机策略, $pi(a | s)$ 表示在状态 $s$ 下选择动作 $a$ 的概率; 对于确定性策略, 可写为 $a = pi(s)$.] 只根据当前状态选择动作, 则有:
 
 $
   bb(P)(s_(t+1) | s_t, a_t , s_(t-1) ,a_(t-1), ..., s_0, a_0) = bb(P)(s_(t+1) | s_t, a_t)\
   bb(P)(a_(t)| s_(t), s_(t-1), a_(t-1), ..., s_0, a_0) = bb(P)(a_(t)| s_(t))
 $
-选择动作的概率 $bb(P)(a_t | s_t)$ 由策略 $pi$ 给出; 用参数 $theta$ 表示策略时, 写作 $pi_theta(a_t | s_t)$. 因此, 在初始状态分布 $rho$ 和环境动力学 $cal(D)$ 给定的情况下, 策略 $pi_theta$ 产生轨迹 $tau$ 的概率为:
+
+在初始状态分布 $rho$ 和环境动力学 $cal(D)$ 给定的情况下, 策略 $pi_theta$ 产生轨迹 $tau$ 的概率为:
 $
-  bb(P)_(theta, cal(D))(tau) = rho(s_0) product_(t=0)^(T-1) cal(D)(s_t, a_t, s_(t+1)) pi_theta(a_t | s_t)
+  bb(P)_(theta, cal(D))(tau) = rho(s_0) product_(t=0)^(T-1) cal(D)(s_t, a_t, s_(t+1)) pi_theta (a_t | s_t)
 $
 
 一条轨迹的折现回报, 是沿途奖励按时间折现后的总和:
@@ -43,7 +46,7 @@ $
   G(tau) = sum_(t=0)^(T-1) gamma^t r_t
 $
 
-智能体要学习的是使期望回报最大的控制策略. 在给定的环境(任务)中, 同一策略可能产生不同的轨迹; 将各条可能轨迹的回报按分布求期望, 就得到该策略的期望回报. 这样便可以按照任务目标比较策略空间 $Pi$ 中策略的优劣, 并将优化目标写为:
+智能体要学习的是使期望回报最大的 *控制策略* . 在给定的环境(任务)中, 同一策略可能产生不同的轨迹; 将各条可能轨迹的回报按分布求期望, 就得到该策略的期望回报. 这样便可以按照任务目标比较策略空间 $Pi$ 中策略的优劣, 并将优化目标写为:
 $
   J: Pi -> RR, quad J(pi_theta) = bb(E)_(tau ~ bb(P)_(theta, cal(D))) [G(tau)]\
   "其中" bb(P)_(theta;cal(D)) (tau) = rho product_(t=1)^(T-1) cal(D)(s_t,a_(t-1),s_(t-1)) pi_theta (a_t|s_t)
@@ -61,16 +64,58 @@ $
 变形后:
 $
   Q_pi (s_t, a_t) =
-  bb(E)_(s_(t+1) ~ cal(D)(dot | s_t, a_t))
-  [r_t + gamma V_pi(s_(t+1))]
+  bb(E)_(s_(t+1) ~ bb(P)(dot | s_t, a_t))
+  [r_t + gamma V_pi (s_(t+1))]
   \
   V_pi (s_t) =
   bb(E)_(a_t ~ pi(dot | s_t))
-  [Q_pi(s_t, a_t)]
+  [Q_pi (s_t, a_t)]
 $
 
 值函数使我们能够在给定策略 $pi$ 下, 比较不同状态以及不同"状态—动作"组合的优劣. 许多强化学习算法正是依据这种比较来改进策略.
 
+== 高效率强化学习算法
+在马尔可夫决策过程（MDP）中, 最优策略 $pi^*$ 对应的动作价值函数记为 $Q^* eq.triple Q_(pi^*)$. 在状态 $s_t$ 下, 选择使 $Q^*(s_t,a_t)$ 最大的动作, 就得到最优策略所采取的动作 $mu(s_t)$:
+
+$
+  mu(s_t) = argmax_(a_t in cal(A)) Q^* (s_t,a_t)
+$
+
+而要确定当前动作的价值 $Q^*(s_t,a_t)$, 还需考虑执行动作后获得的奖励 $r_t$, 以及可能到达的下一状态 $s_(t+1)$. 从下一状态起, 智能体仍选择价值最高的动作. 对所有可能的下一状态取期望, 便得到 $Q^*$ 满足的递归关系, 即贝尔曼最优方程（Bellman optimality equation）:
+
+$
+  Q^* (s_t,a_t)=bb(E)_(s_(t+1) ~ bb(P)(dot | s_t, a_t)) [r_t + gamma max_(a_(t+1)in cal(A)) Q^* (s_(t+1),a_(t+1)) mid(|) s_t,a_t]
+$
+
+最优 $Q$ 函数按定义满足这一递归关系. 价值迭代方法利用贝尔曼方程, 反复更新对 $Q^*$ 的估计 $Q_h$; 如 $Q$ -learning:
+
+$
+  Q_(i+1) (s_t,a_t) arrow.l bb(E)_(s_(t+1) ~ bb(P)(dot | s_t, a_t)) [r_t + gamma max_(a_(t+1)in cal(A)) Q_i (s_(t+1),a_(t+1)) mid(|) s_t,a_t], quad i = 0,1,2,...,K
+$
+
+普通 $Q$ -learning 在早期的小规模离散问题中效果良好, 但难以扩展到较大的 $cal(S) times cal(A)$ 空间: 单是存储 $Q: cal(S) times cal(A) -> RR$ 就可能难以承受. 此外, 它也不能直接用于状态—动作空间连续且无结构的 MDP, 机器人领域中的问题便是如此. Mnih 等人（2013）在深度 $Q$ 学习（Deep Q-Learning, DQN）的工作中, 提出用深度卷积神经网络学习 $Q$ 值, 从而处理大规模甚至无结构的状态空间. DQN 用参数为 $theta$ 的神经网络表示 $Q$ 函数, 并通过逐步最小化期望平方时序差分误差来更新参数:
+
+$
+  L(theta_i) =& bb(E)_((s_t,a_t)~chi(dot)) [(y_i-Q_(theta_i) (s_t,a_t))^2]\
+  y_i =& bb(E)_(s_(t+1)~bb(P)(dot | s_t, a_t)) [r_t + gamma max_(a_(t+1)in cal(A)) Q_(theta_(i-1)) (s_(t+1),a_(t+1))]
+$
+
+其中, $y_i$ 是用上一轮参数 $theta_(i-1)$ 计算的目标值; 它与当前预测值 $Q_(theta_i)(s_t,a_t)$ 之差 $delta_i$ 称为时序差分误差（TD 误差）. 训练时最小化其平方的期望 $L(theta_i)$.
+
+$chi$ 是训练数据中状态—动作对的分布, 可以不同于当前策略产生的数据分布. 先前交互得到的 $(s_t,a_t,r_t,s_(t+1))$ 可存入经验回放缓冲区 $D$, 供后续抽样训练.
+
+对于离散动作问题, DQN 能够处理大规模、无结构的状态空间, 但将其用于连续控制并不容易. 若用神经网络等复杂函数来近似 $Q$ 函数, 每一步都要求解 $max_(a_t in cal(A)) Q_theta(s_t,a_t)$. 由于动作空间连续（ $cal(A) subset.eq RR^n$）, 且难以找到计算代价较低、最好具有闭式解的策略来解析地求出这一最大值, 逐步求解便不可行. 为此, Silver 等人（2014）采用由状态直接确定动作的策略 $mu_phi(s_t) = a_t$, 其中 $phi$ 为策略参数; 通过迭代更新 $phi$, 可以逐步改进策略:
+
+$
+  d_phi =& bb(E)_(s_t ~ bb(P)(dot)) [nabla_phi Q(s_t, a_t) |_(a_t = mu_phi(s_t))] \
+        =& bb(E)_(s_t ~ bb(P)(dot)) [nabla_(a_t) Q(s_t, a_t) |_(a_t = mu_phi(s_t)) dot nabla_phi mu_phi(s_t)]
+$
+
+这个方向 $d_phi$ 称为确定性策略梯度（Deterministic Policy Gradient, DPG）. 按 $phi_(k+1) = phi_k + alpha d_phi$ 更新策略参数, 可以提高确定性策略的期望回报 $J(mu_phi)$. Lillicrap 等人（2019）将 DPG 扩展到高维、无结构的观测和连续动作空间, 提出深度确定性策略梯度（Deep Deterministic Policy Gradient, DDPG）. DDPG 使用策略网络选择动作, 并据此修改时序差分目标.
+
+
+
+与 DQN 类似, DDPG 也采用了相同的重放缓冲机制, 通过重复利用训练过程中的状态转移来提升样本处理的效率, 并通过蒙特卡洛估计法来估算损失函数.
 
 == 强化学习基础: MDP、价值函数与策略梯度
 

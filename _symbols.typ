@@ -7,6 +7,7 @@
 )
 #let hx = $hat(x)$
 #let hy = $hat(y)$
+#let argmax = math.op("arg max", limits: true)
 #let thm(body, title: none) = thm-figure("Theorem", body, title: title)
 #let lemma(body, title: none) = thm-figure("Lemma", body, title: title)
 #let proposition(body, title: none) = thm-figure("Proposition", body, title: title)
@@ -99,7 +100,9 @@
       context {
         let loc = el.location()
         let hcon = counter(heading).at(loc)
-        let section = if hcon.len() > 1 { str(hcon.at(0)) + "." + str(hcon.at(1)) } else if hcon.len() > 0 { str(hcon.at(0)) } else {
+        let section = if hcon.len() > 1 { str(hcon.at(0)) + "." + str(hcon.at(1)) } else if hcon.len() > 0 {
+          str(hcon.at(0))
+        } else {
           "0"
         }
         let def-num = el.counter.at(loc).at(0)

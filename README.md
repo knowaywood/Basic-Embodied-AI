@@ -1,43 +1,37 @@
 # Basic Embodied AI
 
-以 Typst 编写的具身智能基础笔记。`main.typ` 是唯一需要维护的书稿来源。
+原版pdf: [https://github.com/knowaywood/Basic-Embodied-AI/releases/download/v1/Basic-Embodied-AI.pdf](https://github.com/knowaywood/Basic-Embodied-AI/releases/download/v1/Basic-Embodied-AI.pdf)
+
 
 在线阅读：[https://knowaywood.github.io/Basic-Embodied-AI/](https://knowaywood.github.io/Basic-Embodied-AI/)
 
 ## 本地构建网站
 
-需要 Linux / WSL、Node.js、npm 与 Pandoc。
+需要 Python 3 与 Typst 0.15.1 或更新版本。首次构建时 Typst 会下载 [Manifesto 0.2.0](https://typst.app/universe/package/manifesto/) 模板。
 
 ```bash
-npm ci
-npm run build
+python3 scripts/build_html.py
 ```
 
-上述命令会自动完成：
-
-1. 按 `main.typ` 中的章节顺序，将 `src/*.typ` 转换为 `site-src/*.md`；
-2. 将 VitePress 站点构建至 `dist/`。
-
-`_symbols.typ` 中的定理、证明和算法宏由 `scripts/pandoc-symbols.typ` 提供网站专用适配：保留正文和标题，省略仅适用于 PDF 的布局。`scripts/build_site.py` 生成页面，`scripts/pandoc-site.lua` 处理公式、引用和图片；VitePress 根据站点 `base` 自动处理部署路径。
+Typst 直接将 `main_html.typ` 编译为多页面 HTML bundle，输出到 `dist/`。四个章节分别是 `index.html`、`learning.html`、`systems.html` 和 `questions.html`，每页提供章节目录和上一篇、下一篇导航。PDF 仍使用 `main.typ`。
 
 预览构建结果：
 
 ```bash
-npm run preview
+python3 -m http.server 8000 --directory dist
 ```
 
-开发时使用：
-
-```bash
-npm run dev
-```
+打开 `http://localhost:8000/`。修改内容后重新运行构建命令并刷新页面。
 
 ## GitHub Pages
 
-推送到 `master` 后，GitHub Actions 会执行 `npm run build`，并将 `dist/` 强制发布到 `gh-pages` 分支。
+推送到 `master` 后，GitHub Actions 安装 Typst、编译 HTML bundle，并将 `dist/` 发布到 `gh-pages` 分支。
 
 首次部署后，在仓库 **Settings → Pages** 中选择 **Deploy from a branch**，分支选 `gh-pages`，目录选 `/(root)`。
 
 ## TODO
 
 - [ ] typst引用时需要使用 图...
+- [x] 直接使用 Typst 编译出 HTML
+
+Manifesto 模板通过在线 Tailwind 和 Google Fonts 加载样式。Typst 的 HTML bundle 目前仍为实验功能；使用自定义 HTML 页面结构时，脚注在 HTML 中显示为行内括注，PDF 保持正常脚注。

@@ -16,8 +16,8 @@ repos:
         pass_filenames: true
         stages: [pre-commit]
     -   id: lint-typst
-        name: Lint Typst with tinymist
-        entry: uv run scripts/lint_typst.py
+        name: Lint Typst PDF and HTML entrypoints
+        entry: python3 scripts/lint_typst.py
         language: system
         files: \.typ$
         pass_filenames: true

@@ -1,5 +1,4 @@
 #import "../_symbols.typ": *
-#set heading(numbering: "1.1")
 = 机器人学基础
 == 自由度
 
