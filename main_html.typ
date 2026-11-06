@@ -1,6 +1,15 @@
 #import "@preview/manifesto:0.2.0": template
 #import "_symbols.typ": *
 
+// HTML 导出不显示公式编号, 因此公式引用不能用编号, 改为指向公式的文本链接.
+#show ref: it => {
+  if it.element != none and it.element.func() == math.equation {
+    link(it.element.location())[（见下式）]
+  } else {
+    it
+  }
+}
+
 #show footnote: note => html.elem("span", attrs: (class: "html-footnote"))[（#note.body）]
 #let chapters = (
   (path: "index.html", name: [机器人学基础]),
