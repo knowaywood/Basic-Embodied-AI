@@ -137,20 +137,140 @@ $
 
 更新策略时, SAC 希望价值较高的动作更容易被选到, 同时保留动作分布的随机性. 下面用 KL 散度衡量新策略与目标分布的差异, 并在策略空间 $Pi$ 中寻找差异最小的策略:
 $
-  pi_(k+1) <-  argmin_(pi' in Pi) D_("KL")(pi'(dot | s_t) mid(||) exp(Q_(pi_k) (s_t,dot)) / (Z_(pi_k) (s_t)))
+  pi_(k+1) <- argmin_(pi' in Pi) D_("KL")(pi'(dot | s_t) mid(||) exp(Q_(pi_k) (s_t,dot)) / (Z_(pi_k) (s_t)))
 $
 
 其中, $D_("KL")(p mid(||) q)$ 是 KL 散度, 衡量分布 $p$ 相对于 $q$ 的差异. 对于连续动作空间, 归一化因子为:
-$ Z_(pi_k)(s_t) = integral_(cal(A)) exp(Q_(pi_k)(s_t,a)) dif a$.
+$Z_(pi_k)(s_t) = integral_(cal(A)) exp(Q_(pi_k)(s_t,a)) dif a$.
 $exp(Q_(pi_k) (s_t,dot)) / (Z_(pi_k) (s_t))$ 是一个概率分布; $Pi$ 可以选为高斯分布等易于计算的分布族.
 
 
 == 深度强化学习: PPO 与 SAC
 
 == 模仿学习、离线 RL 与运动先验
+=== 行为克隆
+
+在真实机器人上训练强化学习算法时, 在线探索成本较高, 也可能带来安全风险. 奖励函数需要针对任务设计, 判断任务是否成功有时还依赖额外设备, 训练过程也需要可靠地重置环境. 模仿学习则利用事先收集的专家示范学习控制策略: 示范中包含了任务目标和行为偏好, 因而可以减少早期探索, 也无需为这些示范单独设计奖励函数.
+
+记专家轨迹的集合为 $cal(D) = {tau^((i))}^N_(i=1)$, 其中 $tau^((i)) = {(o^((i))_t,a_t^((i)))}^(T_i)_(t=0)$ 是第 $i$ 条轨迹. $o_t in cal(O)$ 表示观测, 例如图像或本体感知数据; $a_t in cal(A)$ 表示动作, 例如机器人的控制指令. 这些观测—动作对不包含奖励信息.
+
+行为克隆（Behavioral Cloning, BC）学习从观测到动作的映射, 用来预测专家在相同观测下会采取的动作. Pomerleau（1988）提出的方法可以视为监督学习: 学习确定性映射 $f: cal(O) -> cal(A)$, 用 $f(o_t)$ 预测动作 $a_t$. 训练目标为:
+
+$
+  min_f bb(E)_((o_t,a_t) ~ p(dot)) L(a_t, f(o_t))
+$
+
+其中, $(o_t,a_t)$ 是示范中的观测—动作对, $p$ 是其数据分布; $L: cal(A) times cal(A) -> RR$ 衡量预测动作 $f(o_t)$ 与示范动作 $a_t$ 的差异.
+
+=== 生成式模型
+生成式模型（Generative Models, GMs）尝试学习数据的生成过程, 通常用参数化的概率分布近似未知的数据分布 $p$. 在行为克隆中, $p(o,a)$ 可以表示专家观测与动作的联合分布.
+
+从专家轨迹中取出 $N$ 个观测—动作对, 记为 $cal(D)_("BC") = {(o,a)_i}_(i=1)^N$, 并假设这些样本独立同分布. 生成式模型学习 $p_theta (o,a)$, 使它更倾向于生成专家示范中常见的 观测—动作 组合. 训练时, 模型会提高示范数据在这一分布下的概率, 从而逐步逼近专家数据的分布.
 
 
+==== 变分自编码器(Variational Autoencoder, VAE)
 
+变分自编码器（VAE）学习专家示范中观测—动作对 $(o,a)$ 的分布, 使模型能够生成与示范相似的样本. 这里生成的是整个 $(o,a)$ 对; 如果要根据当前观测 $o$ 直接选择动作 $a$, 还需要进一步构造以 $o$ 为条件的策略.
+
+VAE 假设样本的生成受到不可观测的潜在变量 $z in Z$ 影响. 给定 $z$ 时, $p(o,a | z)$ 描述可能出现的观测—动作对; 不知道 $z$ 时, 则要考虑所有可能的 $z$:
+
+$
+  p(o,a) = integral_("supp"(Z)) p(o,a | z) p(z)
+$
+
+在机器人任务中, $z$ 可以表示示范者所执行任务的某些高层特征. 这是潜在变量的一种可能解释, 并不要求 $z$ 必须对应某个具体任务. 上式对 $z$ 积分, 得到整体的样本分布 $p(o,a)$.
+
+
+为了使模型生成的样本接近示范, 希望提高示范样本在模型下的概率. 对前述由 $N$ 个独立同分布观测—动作对组成的数据集 $cal(D)_("BC")$, 其对数概率可写为:
+
+$
+  log p_theta (cal(D)_("BC"))
+  &= log product_(i=1)^N p_theta ((o,a)_i) \
+  &= sum_(i=1)^N log integral_("supp"(Z)) p_theta ((o,a)_i mid(|) z) p(z)\
+  &= sum_(i=1)^N log integral_("supp"(Z)) (q_theta (z mid(|) (o,a)_i)) / (q_theta (z mid(|) (o,a)_i)) dot p_theta ((o,a)_i mid(|) z) p(z) \
+  &= sum_(i=1)^N log bb(E)_(z ~ q_theta (dot mid(|) (o,a)_i)) [p_theta ((o,a)_i mid(|) z) p(z) / (q_theta (z mid(|) (o,a)_i))]
+$ <evidence-definition>
+
+这里的 $q_theta (z | (o,a)_i)$ 是推导时引入的辅助分布. 乘以 $(q_theta (z mid(|) (o,a)_i)) / (q_theta (z mid(|) (o,a)_i)) = 1$ 后, 积分便可改写为关于 $q_theta$ 的期望; 这一步只是换了一种写法.
+
+要真正计算 $p_theta (o,a)$, 仍需考虑所有可能的 $z$. 用神经网络表示高维数据分布时, 这一计算通常难以完成, 因而不便直接最大化上述对数概率.
+
+VAE 因此引入参数为 $phi.alt$ 的推断模型 $q_phi.alt (z mid(|) o,a)$, 根据样本推测可能的 $z$; 参数为 $theta$ 的生成模型 $p_theta (o,a mid(|) z)$ 则根据 $z$ 生成样本. 两个模型共同训练, 使推断出的 $z$ 有助于还原示范.
+
+为了得到可以训练的目标, 根据琴生不等式 $log bb(E) [dot] >= bb(E) [log(dot)]$, 可由 @evidence-definition 得到对数概率的下界:
+$
+  log p_theta (cal(D)_("BC")) >=& sum_(i=1)^N (bb(E)_(z ~ q_theta (dot | (o,a)_i)) [log p_theta ((o,a)_i | z)] + bb(E)_(z ~ q_theta (dot | (o,a)_i)) [log (p(z)/(q_theta (z|(o,a)_i)))])\
+  =& sum_(i=1)^N (bb(E)_( z~q_theta (dot|(o,a)_i))[log p_theta ((o,a)_i|z) ] -D_"KL" [q_theta (z|(o,a)_i) mid(||) p(z) ] )
+$
+其中, $D_"KL" (P || Q)$ 是 KL 散度（Kullback-Leibler Divergence）, 用来衡量两个分布的差异. 上式中的这一项比较辅助分布 $q_theta$ 与先验分布 $p(z)$.
+
+从样本推测 $z$ 所需的后验分布为 $p_theta (z | o,a) = (p_theta (o,a | z) p(z)) / (p_theta (o,a))$. 由于分母难以计算, VAE 用可计算的 $q_phi.alt (z | o,a)$ 近似这个后验, 并把它用于上述下界, 得到训练目标——证据下界（Evidence Lower Bound, ELBO）:
+$
+  "ELBO"_(cal(D)_("BC")) (theta, phi.alt) = sum_(i=1)^N (bb(E)_( z~q_phi.alt (dot|(o,a)_i))[log p_theta ((o,a)_i|z) ] -D_"KL" [q_phi.alt (z|(o,a)_i) mid(||) p(z) ] )
+$
+
+具体实现时, 将 $q_phi.alt (z | o,a)$ 设为高斯分布 $cal(N)(mu_phi.alt (o,a), Sigma_phi.alt (o,a))$ #footnote[ $mu$ 表示高斯分布的均值, $Sigma$ 表示协方差矩阵. 此处的 $mu_phi.alt (o,a)$ 、 $Sigma_phi.alt (o,a)$ 描述潜在变量 $z$ 的分布; 后文的 $mu_theta (z)$ 描述观测—动作对的生成分布, 其各向同性协方差写作 $sigma^2 I$.]. 推断网络输出它的均值和协方差, 因而可以从中采样 $z$. 两个网络的输入和输出如下:
+#figure(
+  table(
+    columns: (auto, auto, auto, auto),
+    inset: (x: 6pt, y: 5pt),
+    stroke: 0.6pt,
+    table.header([网络], [输入], [输出], [输出的用途]),
+    [推断网络 $phi.alt$],
+    [示范样本 $(o,a)$],
+    [ $mu_phi.alt (o,a)$ 、 $Sigma_phi.alt (o,a)$],
+    [确定高斯分布 $q_phi.alt (z | o,a)$, 并从中采样 $z$],
+
+    [生成网络 $theta$],
+    [潜在变量 $z$],
+    [观测—动作对的预测均值 $mu_theta (z)$],
+    [在下文的固定方差高斯例子中, 以该均值确定 $p_theta (o,a | z)$],
+  ),
+)
+
+训练时, 样本依次经过推断、采样和生成三个步骤:
+
+$
+  (o,a) stretch(->)^("推断网络" phi.alt) q_phi.alt (z | o, a) stretch(->)^"采样" z stretch(->)^("生成网络" theta) p_theta (o, a | z)
+$
+
+ELBO 的第一项衡量生成模型能否根据 $z$ 还原示范样本; 第二项约束 $q_phi.alt (z | o,a)$ 不要过度偏离先验分布 $p(z)$. 这里选择标准高斯 $p(z) = cal(N)(0,I)$ 作为先验, 使两个高斯分布之间的 KL 散度便于计算. 这是建模选择, 不是从示范数据中推导出的结论.
+
+#remark(title: [蒙特卡洛估计])[
+  蒙特卡洛估计用随机抽取的样本平均值近似难以直接计算的期望. 对给定的观测—动作对 $(o,a)$, 从 $q_phi.alt (z | o,a)$ 中抽取 $K$ 个样本 $z_1, dots, z_K$, 则 ELBO 中的重建项可估计为:
+
+  $
+    bb(E)_(z ~ q_phi.alt (dot | o,a)) [log p_theta (o,a | z)] approx 1/K sum_(k=1)^K log p_theta (o,a | z_k)
+  $
+
+  若将这一项写成需要最小化的重建损失, 其估计值应取负号.
+]
+
+将最大化 ELBO 改写为最小化损失, 可得到重建损失与正则项之和:
+
+$
+  min_(theta, phi.alt) - "ELBO"_((o,a)~cal(D)_("BC")) (theta, phi.alt) =& min_(theta, phi.alt) bold(L)^"rec" (theta) + bold(L)^"reg" (phi.alt)\
+  bold(L)^"rec" (theta)=&-bb(E)_( z~q_phi.alt (dot|(o,a)_i))[log p_theta ((o,a)_i|z) ] \
+  bold(L)^"reg" (phi.alt)=&D_"KL" [q_phi.alt (z|(o,a)_i) mid(||) p(z) ]
+$
+训练时同时更新 $theta$ 和 $phi.alt$: 重建项通过采样得到的 $z$ 调整两个网络, 使生成结果接近示范样本; 正则项进一步约束推断网络给出的潜在变量分布.
+
+与上面的蒙特卡洛估计相同, 将重建项写为损失后, 其采样近似带有负号:
+$
+  -bb(E)_( z~q_phi.alt (dot|o,a))[log p_theta (o,a|z) ] =bold(L)^"rec" approx - 1/n sum_(k=1)^n log p_theta (o,a|z_k)
+$
+
+如果将 $p_theta (o, a|z)$ 设为均值为 $mu_theta (z) in RR^d$ 、方差为 $sigma^2$ 的各向同性高斯分布, 重建损失就与生成结果和示范样本之间的平方误差有关:
+
+$
+  log p_theta (o,a|z_k) &= -1/(2sigma^2) norm((o,a)-mu_theta (z_k))^2_2 - d/2 log(2pi sigma^2) \
+  bold(L)^"rec" &approx 1/(2sigma^2 n) sum_(k=1)^n norm((o,a)-mu_theta (z_k))^2_2 + d/2 log(2pi sigma^2)
+$
+
+训练完成后, 可以从先验 $p(z)$ 采样, 再通过生成模型得到新的观测—动作对. 推断模型 $q_phi.alt (z | o, a)$ 则用于训练时从示范样本推测 $z$; 它不负责生成样本.
+
+
+==== 扩散模型(Diffusion Model, DDPM)
 == 具身强化学习与运动控制 RL
 
 == 生成式策略: Flow Matching
