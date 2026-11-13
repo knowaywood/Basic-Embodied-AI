@@ -9,6 +9,7 @@
 #let hy = $hat(y)$
 #let argmax = math.op("arg max", limits: true)
 #let argmin = math.op("arg min", limits: true)
+#let ov(it) = $overline(it)$
 #let thm(body, title: none) = thm-figure("Theorem", body, title: title)
 #let lemma(body, title: none) = thm-figure("Lemma", body, title: title)
 #let proposition(body, title: none) = thm-figure("Proposition", body, title: title)
